@@ -8,7 +8,7 @@ defmodule ElixirAleRpi.Mixfile do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.3",
+      elixir: "~> 1.2",
       name: "elixir_ale_rpi",
       description: description(),
       package: package(),
