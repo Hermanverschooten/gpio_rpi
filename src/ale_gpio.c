@@ -39,7 +39,10 @@
 #define debug(...)
 #endif
 
+/* PERI_BASE for early A/B models is 0x20000000, for all others it is 0x3F000000
 #define PERI_BASE 0x20000000
+*/
+#define PERI_BASE 0x3F000000
 #define GPIO_BASE (PERI_BASE + 0x200000)
 #define BLOCK_SIZE 4096
 
