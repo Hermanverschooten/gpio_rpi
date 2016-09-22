@@ -3,10 +3,12 @@
 This module allows you to change the pullup registers on a Raspberry Pi.
 
 ```elixir
-AleRpi.Gpio.pull_up(pin)
-AleRpi.Gpio.pull_down(pin)
-AleRpi.Gpio.pull_off(pin)
+AleRpi.Gpio.pullup_mode(pin, :up)
+AleRpi.Gpio.pullup_mode(pin, :down)
+AleRpi.Gpio.pullup_mode(pin, :off)
 ```
+
+The pins are numbered according to the BCM numbering!
 
 ## Installation
 
