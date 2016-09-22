@@ -1,4 +1,4 @@
-defmodule AleRpi.Gpio do
+defmodule Gpio do
   use GenServer
 
   @moduledoc """
@@ -79,7 +79,7 @@ defmodule AleRpi.Gpio do
 
   # gen_server callbacks
   def init([pin, pin_direction]) do
-    executable = :code.priv_dir(:ale_rpi) ++ '/ale_gpio'
+    executable = :code.priv_dir(:ale_rpi) ++ '/ale'
     port = Port.open({:spawn_executable, executable},
     [{:args, ["#{pin}", Atom.to_string(pin_direction)]},
       {:packet, 2},

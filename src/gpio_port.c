@@ -444,28 +444,28 @@ void gpio_handle_request(const char *req, void *cookie)
   erlcmd_send(resp, resp_index);
 }
 
-int main(int argc, char *argv[])
+int gpio_main(int argc, char *argv[])
 {
-  if((argc < 3) || (argc > 4))
-    errx(EXIT_FAILURE, "%s <pin#> <input|output> [none|down|up]", argv[0]);
+  if((argc < 4) || (argc > 5))
+    errx(EXIT_FAILURE, "%s gpio <pin#> <input|output> [none|down|up]", argv[0]);
 
-  int pin_number = strtol(argv[1], NULL, 0);
+  int pin_number = strtol(argv[2], NULL, 1);
   enum gpio_state initial_state;
   int mode = PULLUP_NOTSET;
 
-  if(strcmp(argv[2], "input") == 0)
+  if(strcmp(argv[3], "input") == 0)
     initial_state = GPIO_INPUT;
-  else if(strcmp(argv[2], "output") == 0 )
+  else if(strcmp(argv[3], "output") == 0 )
     initial_state = GPIO_OUTPUT;
   else
     errx(EXIT_FAILURE, "Specify 'input' or 'output'");
 
-  if(argc == 4) {
-    if(strcmp(argv[3], "none") == 0)
+  if(argc == 5) {
+    if(strcmp(argv[4], "none") == 0)
       mode = PULLUP_NONE;
-    else if(strcmp(argv[3], "down") == 0 )
+    else if(strcmp(argv[4], "down") == 0 )
       mode = PULLUP_DOWN;
-    else if(strcmp(argv[3], "up") == 0 )
+    else if(strcmp(argv[4], "up") == 0 )
       mode = PULLUP_UP;
     else
       errx(EXIT_FAILURE, "Specify 'none', 'down' or 'up'");
@@ -474,7 +474,7 @@ int main(int argc, char *argv[])
   struct gpio pin;
   int result;
   if((result = gpio_init(&pin, pin_number, initial_state, mode)) < 0)
-    errx(EXIT_FAILURE, "Error initialize GPIO %d as %s, %d", pin_number, argv[2], result);
+    errx(EXIT_FAILURE, "Error initialize GPIO %d as %s, %d", pin_number, argv[3], result);
 
   struct erlcmd handler;
   erlcmd_init(&handler, gpio_handle_request, &pin);
