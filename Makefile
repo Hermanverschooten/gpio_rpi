@@ -37,14 +37,14 @@ CC ?= $(CROSSCOMPILER)gcc
 
 .PHONY: all clean
 
-all: priv/ale_gpio
+all: priv/ale
 
 %.o: %.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-priv/ale_gpio: src/ale_gpio.o src/erlcmd.o
+priv/ale: src/ale_main.o src/erlcmd.o src/gpio_port.o src/i2c_port.o src/spi_port.o
 	@mkdir -p priv
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
-	rm -f priv/ale_gpio src/*.o
+	rm -f priv/ale src/*.o
