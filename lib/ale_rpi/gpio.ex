@@ -16,8 +16,9 @@ defmodule AleRpi.Gpio do
   def pullup_mode(_pin, _), do: {:error, "Invalid pin or mode"}
 
   defp set_pullup(pin, mode) do
-    executable = :code.priv_dir(:ale_rpi) ++ '/ale_rpi'
-    System.cmd executable, [pin, mode]
+    executable = to_string(:code.priv_dir(:ale_rpi) ++ '/ale_gpio')
+    pin_str = Integer.to_string(pin)
+    System.cmd executable, [pin_str, mode]
     :ok
   end
 end
