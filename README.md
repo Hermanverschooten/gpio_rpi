@@ -55,30 +55,30 @@ Here's an example setup:
 To turn on the LED that's connected to the net labelled
 `PI_GPIO18`, you can run the following:
 
-    iex> {:ok, pid} = Gpio.start_link(18, :output)
+    iex> {:ok, pid} = GpioRpi.start_link(18, :output)
     {:ok, #PID<0.96.0>}
 
-    iex> Gpio.write(pid, 1)
+    iex> GpioRpi.write(pid, 1)
     :ok
 
 Input works similarly:
 
-    iex> {:ok, pid} = Gpio.start_link(17, :input)
+    iex> {:ok, pid} = GpioRpi.start_link(17, :input)
     {:ok, #PID<0.97.0>}
 
-    iex> Gpio.read(pid)
+    iex> GpioRpi.read(pid)
     0
 
     # Push the button down
 
-    iex> Gpio.read(pid)
+    iex> GpioRpi.read(pid)
     1
 
 If you'd like to get a message when the button is pressed or released, call the
 `set_int` function. You can trigger on the `:rising` edge, `:falling` edge or
 `:both`.
 
-    iex> Gpio.set_int(pid, :both)
+    iex> GpioRpi.set_int(pid, :both)
     :ok
 
     iex> flush
@@ -91,7 +91,7 @@ This prevents the race condition between getting the initial state of the pin an
 
 If you need to change the pull-up register on your RPI, you can use `set_mode`, it takes either :up, :down or :none.
 
-    iex> Gpio.set_mode(pid, :up)
+    iex> GpioRpi.set_mode(pid, :up)
     :ok
 
 ## FAQ
