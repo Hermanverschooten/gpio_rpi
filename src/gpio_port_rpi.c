@@ -108,11 +108,41 @@ int get_rpi_type(void)
   return BOARD_TYPE_2;
 }
 
+int try_gpio_mem(void)
+{
+  int fd;
+  void *gpio_map;
+  int gpio_base;
+
+  fd = open("/dev/gpiomem", O_RDWR | O_SYNC | O_CLOEXEC);
+  if(fd < 0) {
+    return -1;
+  }
+
+  RASPBERRY_PI_PERI_BASE = 0;
+
+  gpio_base = RASPBERRY_PI_PERI_BASE + GPIO_BASE;
+
+  gpio_map = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, gpio_base);
+
+  if(gpio_map == (void *)-1)
+    errx(EXIT_FAILURE, "Cannot open /dev/gpiomem on the memory!\n");
+
+  close(fd);
+
+  gpio_mem = (unsigned int *) gpio_map;
+
+  return 1;
+}
+
 void init_gpio_mem(void)
 {
   int fd;
   void *gpio_map;
   int gpio_base;
+
+  if(try_gpio_mem() == 1)
+    return;
 
   if(get_rpi_type() == BOARD_TYPE_1)
     RASPBERRY_PI_PERI_BASE = PERI_BASE_1;
