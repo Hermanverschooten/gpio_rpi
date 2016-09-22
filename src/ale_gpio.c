@@ -175,7 +175,7 @@ int sysfs_write_file(const char *pathname, const char *value)
 int export_pin(struct gpio *pin, unsigned int pin_number)
 {
   char value_path[64];
-  sprintf(value_path, "/sys/class/hpio/gpio%d/value", pin_number);
+  sprintf(value_path, "/sys/class/gpio/gpio%d/value", pin_number);
 
   // Check to see if pin has already been exported?
   if(access(value_path, F_OK) == -1) {
@@ -276,12 +276,13 @@ int gpio_init(struct gpio *pin, unsigned int pin_number, enum gpio_state dir, in
 
   // Set sysfs files for this pin
   if((pin->fd = export_pin(pin, pin_number)) == -1)
-    return -1;
+    return -2;
   if(create_direction_path(pin_number, dir) == -1)
-    return -1;
+    return -3;
 
-  if(mode != PULLUP_NOTSET)
-    gpio_pullup(pin, mode);
+  init_gpio_mem();
+
+  gpio_pullup(pin, mode);
 
   return 1;
 }
@@ -471,8 +472,9 @@ int main(int argc, char *argv[])
   }
 
   struct gpio pin;
-  if(gpio_init(&pin, pin_number, initial_state, mode) < 0)
-    errx(EXIT_FAILURE, "Error initialize GPIO %d as %s", pin_number, argv[2]);
+  int result;
+  if((result = gpio_init(&pin, pin_number, initial_state, mode)) < 0)
+    errx(EXIT_FAILURE, "Error initialize GPIO %d as %s, %d", pin_number, argv[2], result);
 
   struct erlcmd handler;
   erlcmd_init(&handler, gpio_handle_request, &pin);
