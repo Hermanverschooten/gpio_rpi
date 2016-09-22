@@ -157,6 +157,17 @@ having trouble, check that the device files exist in `/sys/class/gpio`.
 Yes! If your life has been improved by `gpio_rpi` and you want to give back,
 it would be great to have new energy put into this project. Please email me.
 
+### I currently use elixir_ale, how can I use this library (too)?
+
+The easiest way is to add it to your mix file, and subsequently alias it in your code.
+```elixir
+defmodule SomeGpioUser do
+  alias GpioRpi, as: Gpio
+  ...
+```
+
+Or you can just find/replace all Gpio with GpioRpi.
+
 # License
 
 This library draws much of its design and code from the elixir_ale project which
