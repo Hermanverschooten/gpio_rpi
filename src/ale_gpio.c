@@ -39,12 +39,13 @@
 #define debug(...)
 #endif
 
-/* PERI_BASE for early A/B models is 0x20000000, for all others it is 0x3F000000
-#define PERI_BASE 0x20000000
-*/
-#define PERI_BASE 0x3F000000
-#define GPIO_BASE (PERI_BASE + 0x200000)
-#define BLOCK_SIZE 4096
+/* PERI_BASE for early A/B models is 0x20000000, for all others it is 0x3F000000 */
+#define PERI_BASE_1   0x20000000
+#define PERI_BASE_2   0x3F000000
+#define GPIO_BASE     0x200000
+#define BLOCK_SIZE    4096
+#define BOARD_TYPE_1  1
+#define BOARD_TYPE_2  2
 
 static volatile unsigned int *gpio;
 
@@ -54,11 +55,63 @@ enum gpio_pull_state {
   GPIO_PULL_UP   = 0x2
 };
 
-void
+  int
+get_rpi_type(void)
+{
+  FILE *fd;
+  char line[120];
+  int rev=0;
+
+  if((fd = fopen("/proc/cpuinfo", "r")) == NULL)
+    errx(EXIT_FAILURE, "Unable to read /proc/cpuinfo");
+
+  while(fgets(line, 120, fd) != NULL)
+    if(strncmp(line, "Hardware", 8) == 0)
+      break;
+
+  if(strncmp(line, "Hardware", 8) != 0)
+    errx(EXIT_FAILURE, "No Hardware line");
+
+  if(strstr(line, "BCM2709") == NULL)
+  {
+    fclose(fd);
+    return BOARD_TYPE_2;
+  }
+
+  rewind(fd);
+
+  while(fgets(line, 120, fd) != NULL)
+    if(strncmp(line, "Revision", 8) == 0)
+      break;
+
+  if(strncmp(line, "Revision", 8) != 0)
+    errx(EXIT_FAILURE, "No Revision line");
+
+  fclose(fd);
+
+  if(scanf(line, "Revision\t: %8u", rev) < 0)
+    errx(EXIT_FAILURE, "Error reading revision");
+
+  rev &= 0xffff;
+  if((rev== 0x0002) || (rev == 0x0003))
+    return BOARD_TYPE_1;
+
+  return BOARD_TYPE_2;
+}
+
+  void
 gpio_init()
 {
   int fd;
   void *gpio_map;
+  int gpio_base;
+
+  if(get_rpi_type() == BOARD_TYPE_1)
+    gpio_base = PERI_BASE_1;
+  else
+    gpio_base = PERI_BASE_2;
+
+  gpio_base += GPIO_BASE;
 
   fd = open("/dev/mem", O_RDWR | O_SYNC);
   if(fd < 0) {
@@ -66,9 +119,9 @@ gpio_init()
     exit(-1);
   }
 
-  gpio_map = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_BASE);
+  gpio_map = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, gpio_base);
 
-  if((int) gpio_map == -1)
+  if(gpio_map == (void *)-1)
     errx(EXIT_FAILURE, "Cannot open /dev/mem on the memory!\n");
 
   close(fd);
@@ -76,7 +129,7 @@ gpio_init()
   gpio = (unsigned int *) gpio_map;
 }
 
-void
+  void
 gpio_pullup(int pin, int mode)
 {
   gpio[37] = mode & 0x3;
@@ -89,7 +142,7 @@ gpio_pullup(int pin, int mode)
   gpio[38] = 0;
 }
 
-int
+  int
 main(int argc, char *argv[])
 {
   if(argc < 3)
