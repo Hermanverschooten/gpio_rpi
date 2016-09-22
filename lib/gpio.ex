@@ -1,8 +1,8 @@
-defmodule Gpio do
+defmodule GpioRpi do
   use GenServer
 
   @moduledoc """
-  This is an Elixir interface to Linux GPIOs. Each GPIO is an
+  This is an Elixir interface to Raspberry PI GPIOs. Each GPIO is an
   independent GenServer.
   """
 
@@ -79,9 +79,9 @@ defmodule Gpio do
 
   # gen_server callbacks
   def init([pin, pin_direction]) do
-    executable = :code.priv_dir(:elixir_ale_rpi) ++ '/ale'
+    executable = :code.priv_dir(:gpio_rpi) ++ '/gpio_rpi'
     port = Port.open({:spawn_executable, executable},
-    [{:args, ["gpio", "#{pin}", Atom.to_string(pin_direction)]},
+    [{:args, ["#{pin}", Atom.to_string(pin_direction)]},
       {:packet, 2},
       :use_stdio,
       :binary,

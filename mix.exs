@@ -1,18 +1,18 @@
-defmodule ElixirAleRpi.Mixfile do
+defmodule GpioRpi.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :elixir_ale_rpi,
+    [app: :gpio_rpi,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
       elixir: "~> 1.2",
-      name: "elixir_ale_rpi",
+      name: "gpio_rpi",
       description: description(),
       package: package(),
-      source_url: "https://github.com/Hermanverschooten/elixir_ale_rpi",
+      source_url: "https://github.com/Hermanverschooten/gpio_rpi",
       compilers: [:elixir_make] ++ Mix.compilers,
       make_clean: ["clean"],
       docs: [extras: ["README.md"]],
@@ -29,7 +29,7 @@ defmodule ElixirAleRpi.Mixfile do
 
   defp description do
     """
-    Elixir access to hardware I/O interfaces such as GPIO, I2C, and SPI.
+    Elixir access to the GPIO interface on Raspberry PI>
     """
   end
 
@@ -37,7 +37,7 @@ defmodule ElixirAleRpi.Mixfile do
     %{files: ["lib", "src/*.[ch]", "mix.exs", "README.md", "LICENSE", "Makefile"],
       maintainers: ["Herman verschooten","Frank Hunleth"],
       license: ["Apache-2.0"],
-      links: %{"Github" => "https://github.com/Hermanverschooten/elixir_ale_rpi"}}
+      links: %{"Github" => "https://github.com/Hermanverschooten/gpio_rpi"}}
   end
 
   defp deps do

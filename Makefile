@@ -12,7 +12,7 @@
 ifeq ($(CROSSCOMPILE),)
     # Not crosscompiling, so check that we're on Linux.
     ifneq ($(shell uname -s),Linux)
-        $(error Elixir ALE only works on Linux. Crosscompiling is possible if $$CROSSCOMPILE is set.)
+        $(error Elixir GPIO_RPI only works on Linux. Crosscompiling is possible if $$CROSSCOMPILE is set.)
     endif
 endif
 
@@ -37,14 +37,14 @@ CC ?= $(CROSSCOMPILER)gcc
 
 .PHONY: all clean
 
-all: priv/ale
+all: priv/gpio_rpi
 
 %.o: %.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-priv/ale: src/ale_main.o src/erlcmd.o src/gpio_port.o src/gpio_port_rpi.o src/i2c_port.o src/spi_port.o
+priv/gpio_rpi: src/erlcmd.o src/gpio_port.o src/gpio_port_rpi.o
 	@mkdir -p priv
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
-	rm -f priv/ale src/*.o
+	rm -f priv/gpio_rpi src/*.o
