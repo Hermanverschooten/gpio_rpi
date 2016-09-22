@@ -36,7 +36,7 @@ defmodule GpioRpi.Mixfile do
   defp package do
     %{files: ["lib", "src/*.[ch]", "mix.exs", "README.md", "LICENSE", "Makefile"],
       maintainers: ["Herman verschooten","Frank Hunleth"],
-      license: ["Apache-2.0"],
+      licenses: ["Apache-2.0"],
       links: %{"Github" => "https://github.com/Hermanverschooten/gpio_rpi"}}
   end
 
