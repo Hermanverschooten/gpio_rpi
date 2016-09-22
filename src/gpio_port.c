@@ -269,16 +269,51 @@ void gpio_pullup(struct gpio *pin, int mode)
  */
 int gpio_init(struct gpio *pin, unsigned int pin_number, enum gpio_state dir, int mode)
 {
-  // Initialize the pin structure
+  /* Initialize the pin structure. */
   pin->state = dir;
   pin->fd = -1;
   pin->pin_number = pin_number;
+  /* Construct the gpio control file paths */
+  char direction_path[64];
+  sprintf(direction_path, "/sys/class/gpio/gpio%d/direction", pin_number);
 
-  // Set sysfs files for this pin
-  if((pin->fd = export_pin(pin, pin_number)) == -1)
-    return -2;
-  if(create_direction_path(pin_number, dir) == -1)
-    return -3;
+  char value_path[64];
+  sprintf(value_path, "/sys/class/gpio/gpio%d/value", pin_number);
+
+  /* Check if the gpio has been exported already. */
+  if (access(value_path, F_OK) == -1) {
+    /* Nope. Export it. */
+    char pinstr[64];
+    sprintf(pinstr, "%d", pin_number);
+    if (!sysfs_write_file("/sys/class/gpio/export", pinstr))
+      return -1;
+  }
+
+  /* The direction file may not exist if the pin only works one way.
+   *        It is ok if the direction file doesn't exist, but if it does
+   *               exist, we must be able to write it.
+   *                   */
+  if (access(direction_path, F_OK) != -1) {
+    const char *dir_string = (dir == GPIO_OUTPUT ? "out" : "in");
+    /* Writing the direction fails on a Raspberry Pi in what looks
+     *            like a race condition with exporting the GPIO. Poll until it
+     *                       works as a workaround. */
+    int retries = 1000; /* Allow 1000 * 1 ms = 1 second max for retries */
+    while (!sysfs_write_file(direction_path, dir_string) &&
+        retries > 0) {
+      usleep(1000);
+      retries--;
+    }
+    if (retries == 0)
+      return -1;
+  }
+
+  pin->pin_number = pin_number;
+
+  /* Open the value file for quick access later */
+  pin->fd = open(value_path, pin->state == GPIO_OUTPUT ? O_RDWR : O_RDONLY);
+  if (pin->fd < 0)
+    return -1;
 
   init_gpio_mem();
 
