@@ -72,11 +72,14 @@ get_rpi_type(void)
   if(strncmp(line, "Hardware", 8) != 0)
     errx(EXIT_FAILURE, "No Hardware line");
 
-  if(strstr(line, "BCM2709") == NULL)
+  if(strstr(line, "BCM2709") != NULL)
   {
     fclose(fd);
+    debug("Returning board type 2\n");
     return BOARD_TYPE_2;
   }
+
+  debug("Hardware not conclusive\n%s\nChecking revision\n", line);
 
   rewind(fd);
 
@@ -89,7 +92,9 @@ get_rpi_type(void)
 
   fclose(fd);
 
-  if(scanf(line, "Revision\t: %8u", rev) < 0)
+  debug("%s", line);
+
+  if(scanf(line, "Revision\t: %x\n", rev) < 0)
     errx(EXIT_FAILURE, "Error reading revision");
 
   rev &= 0xffff;
