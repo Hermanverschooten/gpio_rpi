@@ -79,9 +79,9 @@ defmodule Gpio do
 
   # gen_server callbacks
   def init([pin, pin_direction]) do
-    executable = :code.priv_dir(:ale_rpi) ++ '/ale'
+    executable = :code.priv_dir(:elixir_ale_rpi) ++ '/ale'
     port = Port.open({:spawn_executable, executable},
-    [{:args, ["#{pin}", Atom.to_string(pin_direction)]},
+    [{:args, ["gpio", "#{pin}", Atom.to_string(pin_direction)]},
       {:packet, 2},
       :use_stdio,
       :binary,
