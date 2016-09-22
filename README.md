@@ -89,6 +89,11 @@ If you'd like to get a message when the button is pressed or released, call the
 Note that after calling `set_int`, the calling process will receive an initial message with the state of the pin.
 This prevents the race condition between getting the initial state of the pin and turning on interrupts. Without it, you could get the state of the pin, it could change states, and then you could start waiting on it for interrupts. If that happened, you would be out of sync.
 
+If you need to change the pull-up register on your RPI, you can use `set_mode`, it takes either :up, :down or :none.
+
+    iex> Gpio.set_mode(pid, :up)
+    :ok
+
 ## FAQ
 
 ### Where can I get help?
