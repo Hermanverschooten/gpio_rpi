@@ -28,6 +28,7 @@ If you just want to try it out, you can do the following:
 
     git clone https://github.com/Hermanverschooten/gpio_rpi.git
     cd gpio_rpi
+    mix deps.get
     mix compile
     iex -S mix
 
