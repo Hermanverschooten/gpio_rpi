@@ -169,6 +169,11 @@ defmodule SomeGpioUser do
 
 Or you can just find/replace all Gpio with GpioRpi.
 
+### What are the GPIO numbers?
+
+There is much confusion in the Raspberry PI world concerning the numbering of the GPIO pins.
+I use the Broadcom (BCM) numbering schema, as this is the closest thing to the machine.
+You can find more info on the numbering at https://pinout.xyz
 # License
 
 This library draws much of its design and code from the elixir_ale project which
