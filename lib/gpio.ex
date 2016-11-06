@@ -23,10 +23,31 @@ defmodule GpioRpi do
   Start and link a new GPIO GenServer. `pin` should be a valid
   GPIO pin number on the system and `pin_direction` should be
   `:input` or `:output`.
+  Optional parameters:
+  `:mode` set pullup register, see set_mode/2.
+  `:interrupt`, enable interrupts, see set_int/2 for the different transitions.
   """
   @spec start_link(integer, pin_direction, [term]) :: {:ok, pid}
   def start_link(pin, pin_direction, opts \\ []) do
-    GenServer.start_link(__MODULE__, [pin, pin_direction], opts)
+    {pullup, opts} = Keyword.pop(opts, :mode, :unset)
+    {interrupt, opts} = Keyword.pop(opts, :interrupt, :unset)
+
+    {:ok, pid} = GenServer.start_link(__MODULE__, [pin, pin_direction], opts)
+
+    case pin_direction do
+      :input ->
+        case pullup do
+          :unset -> :ok
+          mode -> set_mode(pid, mode)
+        end
+        case interrupt do
+          :unset -> :ok
+          dir -> set_int(pid, dir)
+        end
+      _ -> :ok
+    end
+
+    {:ok, pid}
   end
 
   @doc """
@@ -104,6 +125,7 @@ defmodule GpioRpi do
     state = %{state | callbacks: new_callbacks}
     {:reply, response, state}
   end
+
   def handle_call({:set_mode, mode}, _from, state) do
     {:ok, response} = call_port(state, :set_mode, mode)
     {:reply, response, state}
