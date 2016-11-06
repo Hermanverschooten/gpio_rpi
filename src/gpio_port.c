@@ -133,6 +133,55 @@ int gpio_init(struct gpio *pin, unsigned int pin_number, enum gpio_state dir)
 }
 
 /**
+ * @brief       Change direction of pin
+ *
+ * @param	pin           The pin structure
+ * @param       dir           The new direction 'input' or 'output'
+ *
+ * @return 	1 for success, -1 for failure
+ */
+int gpio_set_direction(struct gpio *pin, const char *dir)
+{
+    enum gpio_state new_state;
+    if (strcmp(dir, "input") == 0)
+        new_state = GPIO_INPUT;
+    else if (strcmp(dir, "output") == 0)
+        new_state = GPIO_OUTPUT;
+    else
+        errx(EXIT_FAILURE, "Specify 'input' or 'output'");
+
+    if(pin->state == new_state)
+        return 1;
+
+    pin->state = new_state;
+
+    /* Construct the gpio control file paths */
+    char direction_path[64];
+    sprintf(direction_path, "/sys/class/gpio/gpio%d/direction", pin->pin_number);
+
+    /* The direction file may not exist if the pin only works one way.
+       It is ok if the direction file doesn't exist, but if it does
+       exist, we must be able to write it.
+    */
+    if (access(direction_path, F_OK) != -1) {
+	const char *dir_string = (new_state == GPIO_OUTPUT ? "out" : "in");
+        /* Writing the direction fails on a Raspberry Pi in what looks
+           like a race condition with exporting the GPIO. Poll until it
+           works as a workaround. */
+        int retries = 1000; /* Allow 1000 * 1 ms = 1 second max for retries */
+        while (!sysfs_write_file(direction_path, dir_string) &&
+               retries > 0) {
+            usleep(1000);
+            retries--;
+        }
+        if (retries == 0)
+            return -1;
+    }
+    return 1;
+
+}
+
+/**
  * @brief	Set pin with the value "0" or "1"
  *
  * @param	pin           The pin structure
@@ -282,6 +331,15 @@ void gpio_handle_request(const char *req, void *cookie)
         debug("set_mode %s", mode);
 
         gpio_pullup(pin, mode);
+        ei_encode_atom(resp, &resp_index, "ok");
+
+    } else if (strcmp(cmd, "set_direction") == 0) {
+        char dir[32];
+        if(ei_decode_atom(req, &req_index, dir) < 0)
+            errx(EXIT_FAILURE, "set_direction: didn't get value");
+        debug("set_direction %s", dir);
+
+        gpio_set_direction(pin, dir);
         ei_encode_atom(resp, &resp_index, "ok");
 
     } else

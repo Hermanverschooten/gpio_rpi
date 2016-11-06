@@ -98,6 +98,30 @@ defmodule GpioRpi do
     GenServer.call pid, {:set_mode, pullup_mode}
   end
 
+  @doc """
+  Set the input/output direction of the pin.
+  Additionally allows setting `:mode` and `:interrupt'
+  """
+  @spec set_direction(pid, pin_direction, [term]) :: :ok | {:error, term}
+  def set_direction(pid, pin_direction, opts \\ []) do
+
+    :ok = GenServer.call pid, {:set_direction, pin_direction}
+
+    case pin_direction do
+      :input ->
+        case Keyword.get(opts, :mode, :unset) do
+          :unset -> :ok
+          mode -> set_mode(pid, mode)
+        end
+        case Keyword.get(opts, :interrupt, :unset) do
+          :unset -> :ok
+          dir -> set_int(pid, dir)
+        end
+      _ -> :ok
+    end
+    :ok
+  end
+
   # gen_server callbacks
   def init([pin, pin_direction]) do
     executable = :code.priv_dir(:gpio_rpi) ++ '/gpio_rpi'
@@ -128,6 +152,10 @@ defmodule GpioRpi do
 
   def handle_call({:set_mode, mode}, _from, state) do
     {:ok, response} = call_port(state, :set_mode, mode)
+    {:reply, response, state}
+  end
+  def handle_call({:set_direction, pin_direction}, _from, state) do
+    {:ok, response} = call_port(state, :set_direction, pin_direction)
     {:reply, response, state}
   end
 
