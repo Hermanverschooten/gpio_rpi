@@ -153,31 +153,21 @@ int gpio_set_direction(struct gpio *pin, const char *dir)
     if(pin->state == new_state)
         return 1;
 
-    pin->state = new_state;
+    char value_path[64];
+    sprintf(value_path, "/sys/class/gpio/gpio%d/value", pin->pin_number);
 
-    /* Construct the gpio control file paths */
-    char direction_path[64];
-    sprintf(direction_path, "/sys/class/gpio/gpio%d/direction", pin->pin_number);
-
-    /* The direction file may not exist if the pin only works one way.
-       It is ok if the direction file doesn't exist, but if it does
-       exist, we must be able to write it.
-    */
-    if (access(direction_path, F_OK) != -1) {
-	const char *dir_string = (new_state == GPIO_OUTPUT ? "out" : "in");
-        /* Writing the direction fails on a Raspberry Pi in what looks
-           like a race condition with exporting the GPIO. Poll until it
-           works as a workaround. */
-        int retries = 1000; /* Allow 1000 * 1 ms = 1 second max for retries */
-        while (!sysfs_write_file(direction_path, dir_string) &&
-               retries > 0) {
-            usleep(1000);
-            retries--;
-        }
-        if (retries == 0)
+    /* Check if the gpio has been exported already. */
+    if (access(value_path, F_OK) != -1) {
+        /* Yes. Unexport it. */
+        char pinstr[64];
+        sprintf(pinstr, "%d", pin->pin_number);
+        if (!sysfs_write_file("/sys/class/gpio/unexport", pinstr))
             return -1;
     }
-    return 1;
+
+    close(pin->fd);
+
+    return gpio_init(pin, pin->pin_number, new_state);
 
 }
 
