@@ -3,7 +3,7 @@ defmodule GpioRpi.Mixfile do
 
   def project do
     [app: :gpio_rpi,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.2",
       name: "gpio_rpi",
       description: description(),
@@ -15,7 +15,7 @@ defmodule GpioRpi.Mixfile do
       aliases: ["docs": ["docs", &copy_images/1]],
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps]
+      deps: deps()]
   end
 
   # Configuration for the OTP application

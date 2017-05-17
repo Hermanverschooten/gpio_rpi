@@ -133,6 +133,45 @@ int gpio_init(struct gpio *pin, unsigned int pin_number, enum gpio_state dir)
 }
 
 /**
+ * @brief       Change direction of pin
+ *
+ * @param	pin           The pin structure
+ * @param       dir           The new direction 'input' or 'output'
+ *
+ * @return 	1 for success, -1 for failure
+ */
+int gpio_set_direction(struct gpio *pin, const char *dir)
+{
+    enum gpio_state new_state;
+    if (strcmp(dir, "input") == 0)
+        new_state = GPIO_INPUT;
+    else if (strcmp(dir, "output") == 0)
+        new_state = GPIO_OUTPUT;
+    else
+        errx(EXIT_FAILURE, "Specify 'input' or 'output'");
+
+    if(pin->state == new_state)
+        return 1;
+
+    char value_path[64];
+    sprintf(value_path, "/sys/class/gpio/gpio%d/value", pin->pin_number);
+
+    /* Check if the gpio has been exported already. */
+    if (access(value_path, F_OK) != -1) {
+        /* Yes. Unexport it. */
+        char pinstr[64];
+        sprintf(pinstr, "%d", pin->pin_number);
+        if (!sysfs_write_file("/sys/class/gpio/unexport", pinstr))
+            return -1;
+    }
+
+    close(pin->fd);
+
+    return gpio_init(pin, pin->pin_number, new_state);
+
+}
+
+/**
  * @brief	Set pin with the value "0" or "1"
  *
  * @param	pin           The pin structure
@@ -282,6 +321,15 @@ void gpio_handle_request(const char *req, void *cookie)
         debug("set_mode %s", mode);
 
         gpio_pullup(pin, mode);
+        ei_encode_atom(resp, &resp_index, "ok");
+
+    } else if (strcmp(cmd, "set_direction") == 0) {
+        char dir[32];
+        if(ei_decode_atom(req, &req_index, dir) < 0)
+            errx(EXIT_FAILURE, "set_direction: didn't get value");
+        debug("set_direction %s", dir);
+
+        gpio_set_direction(pin, dir);
         ei_encode_atom(resp, &resp_index, "ok");
 
     } else
