@@ -136,26 +136,26 @@ defmodule GpioRpi do
   end
 
   def handle_call(:read, _from, state) do
-    {:ok, response} = call_port(state, :read, [])
+    response = call_port(state, :read, [])
     {:reply, response, state}
   end
   def handle_call({:write, value}, _from, state) do
-    {:ok, response} = call_port(state, :write, value)
+    response = call_port(state, :write, value)
     {:reply, response, state}
   end
   def handle_call({:set_int, direction, requestor}, _from, state) do
-    {:ok, response} = call_port(state, :set_int, direction)
+    response = call_port(state, :set_int, direction)
     new_callbacks = insert_unique(state.callbacks, requestor)
     state = %{state | callbacks: new_callbacks}
     {:reply, response, state}
   end
 
   def handle_call({:set_mode, mode}, _from, state) do
-    {:ok, response} = call_port(state, :set_mode, mode)
+    response = call_port(state, :set_mode, mode)
     {:reply, response, state}
   end
   def handle_call({:set_direction, pin_direction}, _from, state) do
-    {:ok, response} = call_port(state, :set_direction, pin_direction)
+    response = call_port(state, :set_direction, pin_direction)
     {:reply, response, state}
   end
 
@@ -173,9 +173,9 @@ defmodule GpioRpi do
     send state.port, {self, {:command, :erlang.term_to_binary(msg)}}
     receive do
       {_, {:data, <<?r,response::binary>>}} ->
-        {:ok, :erlang.binary_to_term(response)}
+        :erlang.binary_to_term(response)
     after
-      1_000 -> :timedout
+      500 -> :timedout
     end
   end
 
