@@ -12,19 +12,28 @@
 ifeq ($(CROSSCOMPILE),)
     # Not crosscompiling, so check that we're on Linux.
     ifneq ($(shell uname -s),Linux)
-        $(error Elixir GPIO_RPI only works on Linux. Crosscompiling is possible if $$CROSSCOMPILE is set.)
+        $(warning Elixir ALE only works on Linux, but crosscompilation)
+        $(warning is supported by defining $$CROSSCOMPILE, $$ERL_EI_INCLUDE_DIR,)
+        $(warning and $$ERL_EI_LIBDIR. See Makefile for details. If using Nerves,)
+        $(warning this should be done automatically.)
+        $(warning .)
+        $(warning Skipping C compilation unless targets explicitly passed to make.)
+	DEFAULT_TARGETS = priv
     endif
+    $(warning CC=$(CC))
 endif
+DEFAULT_TARGETS ?= priv priv/gpio_rpi
 
 # Look for the EI library and header files
-ERL_EI_INCLUDE_DIR ?= $(shell find /usr/local/lib/erlang /usr/lib/erlang ~/.asdf/installs/erlang/19.0/lib/erlang/usr/include/ -name ei.h -printf '%h\n' 2> /dev/null | head -1)
-ERL_EI_LIBDIR ?= $(shell find /usr/local/lib/erlang /usr/lib/erlang ~/.asdf/installs/erlang/19.0/lib/erlang/usr/lib -name libei.a -printf '%h\n' 2> /dev/null | head -1)
-
+# For crosscompiled builds, ERL_EI_INCLUDE_DIR and ERL_EI_LIBDIR must be
+# passed into the Makefile.
 ifeq ($(ERL_EI_INCLUDE_DIR),)
-   $(error Could not find include directory for ei.h. Check that Erlang header files are available)
+ERL_ROOT_DIR = $(shell erl -eval "io:format(\"~s~n\", [code:root_dir()])" -s init stop -noshell)
+ifeq ($(ERL_ROOT_DIR),)
+   $(error Could not find the Erlang installation. Check to see that 'erl' is in your PATH)
 endif
-ifeq ($(ERL_EI_LIBDIR),)
-   $(error Could not find libei.a. Check your Erlang installation)
+ERL_EI_INCLUDE_DIR = "$(ERL_ROOT_DIR)/usr/include"
+ERL_EI_LIBDIR = "$(ERL_ROOT_DIR)/usr/lib"
 endif
 
 # Set Erlang-specific compile and linker flags
@@ -33,17 +42,22 @@ ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
 
 LDFLAGS +=
 CFLAGS ?= -O2 -Wall -Wextra -Wno-unused-parameter
-CC ?= $(CROSSCOMPILER)gcc
+CC ?= $(CROSSCOMPILE)-gcc
+
+SRC=$(wildcard src/*.c)
+OBJ=$(SRC:.c=.o)
 
 .PHONY: all clean
 
-all: priv/gpio_rpi
+all: clean $(DEFAULT_TARGETS)
 
 %.o: %.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-priv/gpio_rpi: src/erlcmd.o src/gpio_port.o src/gpio_port_rpi.o
-	@mkdir -p priv
+priv:
+	mkdir -p priv
+
+priv/gpio_rpi: $(OBJ)
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
