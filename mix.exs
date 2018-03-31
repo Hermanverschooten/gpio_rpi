@@ -3,7 +3,7 @@ defmodule GpioRpi.Mixfile do
 
   def project do
     [app: :gpio_rpi,
-      version: "0.2.0",
+      version: "0.2.1",
       elixir: "~> 1.2",
       name: "gpio_rpi",
       description: description(),
