@@ -1,4 +1,5 @@
-# gpio_rpi - Elixir Actor Library for Raspberry GPIO
+# DEPRECATED - use https://github.com/elixir-circuits/circuits_gpio
+## gpio_rpi - Elixir Actor Library for Raspberry GPIO
 
 [![Build Status](https://travis-ci.org/Hermanverschooten/gpio_rpi.svg)](https://travis-ci.org/Hermanverschooten/gpio_rpi)
 [![Hex version](https://img.shields.io/hexpm/v/gpio_rpi.svg "Hex version")](https://hex.pm/packages/gpio_rpi)
