@@ -22,7 +22,7 @@ Elixir library. Normally, you would include gpio_rpi as a dependency in your
 `mix.exs` like this:
 
     defp deps do
-      [{:gpio_rpi, "~> 0.5.8"}]
+      [{:gpio_rpi, "~> 0.2.2"}]
     end
 
 If you just want to try it out, you can do the following:
